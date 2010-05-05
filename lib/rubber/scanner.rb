@@ -234,7 +234,7 @@ def _scan(fp)
       puts "GCPool #{name}"
       stack.first.classes.push(C_GCRefPool.new(name))
       
-    elsif state.in_func == false and @str.skip(/(enum)(?= )/x) # C Enum as module wrapper
+    elsif state.in_func == false and @str.skip(/(enum|flags)(?= )/x) # C Enum as module wrapper
       what = @str[1]
       @str.skip(/\s+/)
       name = @str.scan(/[A-Z][a-z_0-9A-Z]*/)

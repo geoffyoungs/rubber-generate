@@ -17,7 +17,7 @@ class C_Flags
     io.puts "static VALUE #{cname};"
     unless @@declared_base
     	@@declared_base = true
-    	io.puts "
+    	io.puts <<-EOHEADER
 
 static VALUE flagsBaseClass;
 
@@ -38,7 +38,7 @@ static VALUE make_flags_value(VALUE klass, int value, char *name, char *fullname
 	
 	return Data_Wrap_Struct(klass, NULL, free, data);
 }
-static int value_to_int(VALUE value, VALUE klass)
+static int flags_value_to_int(VALUE value, VALUE klass)
 {
 	switch (TYPE(value))
 	{
@@ -136,11 +136,78 @@ static VALUE rubber_flags_coerce(VALUE value, VALUE other)
 	}
 }
 
-"
+static VALUE rubber_flags_and(VALUE value, VALUE other)
+{
+	FlagsData *data = NULL;
+	int original = 0;
+	int other_num = 0;
+	
+	Data_Get_Struct(value, FlagsData, data);
+
+	original = data->value;
+
+	other_num = flags_value_to_int(value, CLASS_OF(value));
+	
+//	return INT2NUM(original & other_num);
+	return make_flags_value(CLASS_OF(value), original & other_num, "", "");
+}
+
+static VALUE rubber_flags_or(VALUE value, VALUE other)
+{
+	FlagsData *data = NULL;
+	int original = 0;
+	int other_num = 0;
+	
+	Data_Get_Struct(value, FlagsData, data);
+
+	original = data->value;
+
+	other_num = flags_value_to_int(value, CLASS_OF(value));
+	
+	return make_flags_value(CLASS_OF(value), original | other_num, "", "");
+}
+
+
+
+EOHEADER
     end
     args.each do |arg|
       io.puts "static VALUE #{default_cname}_#{arg} = Qnil;"
-    end    
+    end
+io.puts <<-EO_INSPECT
+	static VALUE rubber_#{default_cname}_flags_inspect(VALUE value)
+{
+	FlagsData *data = NULL;
+	volatile VALUE str = rb_str_new(\"#<\", 2);
+	char number[16] = ""; 
+	int c=0;
+	
+	Data_Get_Struct(value, FlagsData, data);
+	
+	rb_str_cat2(str, rb_obj_classname(value));
+	rb_str_cat2(str, " - ");
+EO_INSPECT
+	args.each do |arg|
+		uniq = arg[@strip..-1]
+		io.puts <<-EOARG 
+		if ((data->value & #{arg})==#{arg}) {
+			if (c>0)
+				rb_str_cat2(str, ", ");
+			rb_str_cat2(str, #{uniq.downcase.gsub(/_/,'-').inspect});
+			c ++;
+		}
+		EOARG
+	end
+io.puts <<-EO_INSPECT
+	rb_str_cat2(str, " (");
+	sprintf(number, "%i", data->value);
+	rb_str_cat2(str, number);
+	rb_str_cat2(str, ")>");
+	
+	return str;
+}
+EO_INSPECT
+
     io.puts "typedef int #{name};
 #ifdef __GNUC__
 // No point in declaring these unless we're using GCC
@@ -158,8 +225,10 @@ __attribute__ ((unused))
     args.each do |arg|
       io.puts "    case #{arg}: return #{default_cname}_#{arg};"
     end    
-    io.puts "}; return Qnil; }"
-    io.puts "static int flags_ruby_to_#{name}(VALUE val) { return value_to_int(val, #{cname}); }"
+    io.puts <<-EOB
+	}; return make_flags_value(#{cname}, value, "various", "Various"); }
+	static int flags_ruby_to_#{name}(VALUE val) { return flags_value_to_int(val, #{cname}); }
+	EOB
   end
   include RegisterChildren
   def default_cname
@@ -209,6 +278,8 @@ __attribute__ ((unused))
       io.puts '    rb_define_method(flagsBaseClass, "fullname", rubber_flags_to_s, 0);'
       io.puts '    rb_define_method(flagsBaseClass, "name", rubber_flags_name, 0);'
       io.puts '    rb_define_method(flagsBaseClass, "<=>", rubber_flags_cmp, 0);'
+	  io.puts '    rb_define_method(flagsBaseClass, "&", rubber_flags_and, 1);'
+	  io.puts '    rb_define_method(flagsBaseClass, "|", rubber_flags_or, 1);'
       io.puts '    '
     end
     if parent
@@ -216,6 +287,8 @@ __attribute__ ((unused))
     else
       io.puts "  #{cname} = rb_define_class(#{name.inspect}, flagsBaseClass);"
     end
+	io.puts '    rb_define_method('+cname+', "inspect", rubber_'+default_cname+'_flags_inspect, 0);'
+
     
     args.each do |arg|
       uniq = arg[@strip..-1]
