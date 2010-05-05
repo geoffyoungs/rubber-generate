@@ -39,7 +39,7 @@ static VALUE make_enum_value(VALUE klass, int value, char *name, char *fullname)
 	
 	return Data_Wrap_Struct(klass, NULL, free, data);
 }
-static int value_to_int(VALUE value, VALUE klass)
+static int enum_value_to_int(VALUE value, VALUE klass)
 {
 	switch (TYPE(value))
 	{
@@ -160,7 +160,7 @@ __attribute__ ((unused))
       io.puts "    case #{arg}: return #{default_cname}_#{arg};"
     end    
     io.puts "}; return Qnil; }"
-    io.puts "static int enum_ruby_to_#{name}(VALUE val) { return value_to_int(val, #{cname}); }"
+    io.puts "static int enum_ruby_to_#{name}(VALUE val) { return enum_value_to_int(val, #{cname}); }"
   end
   include RegisterChildren
   def default_cname
