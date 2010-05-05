@@ -1,10 +1,11 @@
-= Rubber Generate =
-== v 0.0.5 ==
+h1. Rubber Generate
+
+h2. v0.0.5
  
 Template language for generating Ruby bindings for C libraries
 by Geoff Youngs <g@intersect-uk.co.uk>
 
-=== Introduction ===
+h3. Introduction
 
 A simple ruby-style bindings generator for Ruby.  It allows bindings to 
 be laid out in a Ruby style, documentation to be included inline and 
@@ -17,17 +18,20 @@ it is planned to remove this dependency unless they genuinely require Ruby/GTK.
 Other features include custom named type-maps, pre/post code inclusion within
 functions and some rudimentary understanding of C code.
 
-=== Dependencies ===
+h3. Dependencies
 
  * Ruby 1.8.6
 
-=== Example ===
+h3. Example
 
 Sample file:
-  example/vte.cr
+
+ * example/vte.cr
 
 Usage:
+<pre>
   $ rubber-generate --generate --build vte.cr
+</pre>
 
 Which should generate
   [arch]/vte.c      <- Source code for extension
@@ -36,11 +40,13 @@ Which should generate
   [arch]/vte.o      <- Object file
   [arch]/vte.so     <- Compiled extension
 
-=== Installation ===
+h3. Installation
 
+<pre>
   $ sudo gem install rubber-generate
+</pre>
 
-=== Credits ===
+h3. Credits
 
 Author: Geoff Youngs
 
