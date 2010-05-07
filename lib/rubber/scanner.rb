@@ -76,7 +76,7 @@ def scan(fp)
 end
 def _scan(fp)
   @lines = IO.readlines(@file)
-  @str = StringScanner.new(@lines.join)
+  @str = StringScanner.new(@string = @lines.join)
   tokens = []
   @state = ScanState.new(0,0,false,0)
   @stack = [C_RootModule.new]
@@ -129,7 +129,7 @@ def _scan(fp)
       when 'glib','gtk','gnu'
       	@options[@str[1]] = (@str[2] == 'yes')
       else
-        raise "Unknown option #{@str[1]}"
+        syntax_error "Unknown option #{@str[1]}"
       end
     elsif @str.skip(/%lib\s+(.+)\n/) # Skip single-line comment
       @libs ||= []
@@ -152,7 +152,7 @@ def _scan(fp)
     	if stack.last.respond_to?(flag)
 	   stack.last.__send__(flag, true)
 	else
-	   raise "%flags directive cannot be used here (#{stack.last.class} doesn't respond to #{flag})"
+	   syntax_error "%flags directive cannot be used here (#{stack.last.class} doesn't respond to #{flag})"
 	end
     elsif state.in_class > 0 and state.in_func == false and @str.skip(/%feature\s+([a-z0-9_A-Z]+)/)
     	flag = ("feature_"+@str[1]).intern
@@ -165,7 +165,7 @@ def _scan(fp)
     	if stack.last.respond_to?(flag)
 	   stack.last.__send__(flag, *args)
 	else
-	   raise "%feature '#{@str[1]}' directive cannot be used here (#{stack.last.class} doesn't support it)"
+	   syntax_error "%feature '#{@str[1]}' directive cannot be used here (#{stack.last.class} doesn't support it)"
 	end
     elsif @str.skip(/%/) # Skip single-line comment
       @str.skip_until(/\n/) 
@@ -286,7 +286,7 @@ def _scan(fp)
       when "gboxed"
         @classes[name] = C_GBoxed.new(name, gtype, [], [], [])
       else
-        raise "#{name} is not a GObject or GInterface..."
+        syntax_error "#{name} is not a GObject or GInterface..."
       end
       @classes[name].gparent_class = gparent_class
       @classes[name].parent = stack.last
@@ -324,7 +324,7 @@ def _scan(fp)
         STDERR.puts "Remaining code: #{@str.rest}"
         STDERR.puts "Defined Classes: #{@classes.keys.join(', ')}"
         p stack
-        raise "Invalid stack entry #{last.class}"
+        syntax_error "Invalid stack entry #{last.class}"
       end
     elsif @str.skip(/alias\s+:([A-Za-z0-9_]*[\[\]]{0,2}[?!=]?)\s+:([A-Za-z0-9_]*[\[\]]{0,2}[?!=]?)/) # Alias
       @class.add_alias(@str[1], @str[2]) if @class.respond_to?(:add_alias)
@@ -332,7 +332,7 @@ def _scan(fp)
 		where = @str[1]
 		str = @str.scan_until(/\bend/)#[0,-4]
 		unless str
-			raise "Invalid #{where}_func definition: #{@str.peek(200).inspect}"
+			syntax_error "Invalid #{where}_func definition"
 		end
 		str = str[0..-4].strip
 		except = only = nil
@@ -404,16 +404,61 @@ def _scan(fp)
         klass = C_Float
       end
       stack.last.classes.push(klass.new(name, string, stack.last)) if klass
-      
+    elsif state.in_func == false && @str.skip(/(array)(?= )/x)
+	  type = @str[1]
+	  @str.skip(/\s+/)
+      name = @str.scan(/[A-Z][a-z_0-9A-Z]*/)
+      @str.skip(/\s*=\s*/)
+	  values = []
+	  if @str.skip(/\[/)
+		 @str.skip(/\s+/)
+		 until @str.skip(/\s*\]/)
+			if @str.skip(/(".*?[^\\]")/)
+				values << { :string => @str[1] } # unescape escaped chars?
+		    elsif @str.skip(/(\d[.]\d+)/)
+				values << { :float => @str[1] }
+			elsif @str.skip(/(\d+)/)
+				values << { :int => @str[1] }
+			elsif @str.skip(/NULL/)
+				values << { :nil => true }
+			elsif @str.skip(/(TRUE|FALSE)/)
+				values << { :bool => @str[1] == 'TRUE' }
+			elsif @str.skip(/([A-Za-z0-9_]+)/)
+				values << { :int => @str[1] } # Assume a constant
+			else
+				syntax_error "Unrecognised array value" 
+			end
+			@str.skip(/\s*,\s*/)
+		 end
+		 stack.last.classes.push(C_Array.new(name, values, stack.last))
+		 p [ :create_array, values ]
+	  else
+		  syntax_error "Arrays should be in the form: [value1, value2, ... valueN]" 
+	  end
     elsif txt = @str.get_byte # Spare chars
       if state.in_func
         func.text += txt
       else
-      	puts '"' << txt << '"'
+		 syntax_error "Invalid character #{txt}" 
       end
     end
   end
 end
+  def current_line
+	count = 0
+	@string[0..@str.pos].each_byte { |b| count += 1 if b == 10 }
+	count
+  end
+  def syntax_error(message)
+	STDERR.puts "Syntax Error: #{message} at line #{current_line}\n"
+	if @str.rest.size > 255
+		STDERR.puts @str.rest[0..255]+"..."
+	else
+		STDERR.puts @str.rest
+	end
+	exit 1
+  end
+
 end
 
 end # m Rubber

@@ -112,6 +112,7 @@ require 'rubber/codegen/function'
 require 'rubber/codegen/string'
 require 'rubber/codegen/integer'
 require 'rubber/codegen/float'
+require 'rubber/codegen/array'
 
 # Special
 require 'rubber/codegen/struct'
