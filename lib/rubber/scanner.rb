@@ -33,7 +33,9 @@ def initialize(file)
   @options.glib= true
   @options.gtk= true
   @options.gnu= false
+  @current_file = file
 end
+attr_reader :current_file
 def scan_args()
   args = []
   return args unless @str.peep(1) == '('
@@ -380,6 +382,8 @@ def _scan(fp)
       stack.last.functions.push(func)
       puts "def "+ func.fullname
       stack.push(func)
+	  func.source_line = current_line
+	  func.source_file = current_file
       state.in_func = true
       
     elsif state.in_func == false and @str.skip(/(string|integer|float|double|int)(?= )/x) # C String as module wrapper

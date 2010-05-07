@@ -2,6 +2,7 @@ module Rubber
 
 class C_Function
   define_members(:name, :args, :text, :parent, {:autofree=>[]}, {:returntype=>'VALUE'}, :doc=>'')
+  attr_accessor :source_line, :source_file
   attr_reader :multi, :block, :rest, :singleton
   def check()
     return if @checked
@@ -136,7 +137,9 @@ class C_Function
         end
      }
     end
+
     io.puts ""
+	io.puts "#line #{source_line} #{source_file.inspect}" if source_line
     setupvars = io.string
     io = oio
     

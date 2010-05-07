@@ -69,6 +69,7 @@ end
 module_function :generate_c_source
 
 module RegisterChildren
+	attr_accessor :source_line, :source_file
 	attr_reader :child_names
 	def register_children(io)
 	    @child_names = {}
