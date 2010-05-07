@@ -363,6 +363,30 @@ def _scan(fp)
       @str.skip(/\s+/)
       if @str.scan(/([a-zA-Z_* ]+):/)
         returntype = @str[1]
+	  elsif @str.skip(/(GS?List){([^}]+)}:/)
+		container = @str[1]
+		ct = @str[2]
+		cn = ct.gsub(/\s+/,'').gsub(/[*]/,'__p')
+		rule = container+'{'+ct+'}'
+		returntype = rule
+		
+		#syntax_error "Auto converting (#{rule}) GSList of #{ct} is not yet supported"
+		#  sane
+		unless $custom_maps[rule] && $custom_maps[rule]['VALUE']
+		   function = "rubber_#{container}_of_#{cn}_to_array"	
+			@raw = @raw.to_s + <<-EOADD
+inline VALUE #{function}(#{container} *list) {
+	#{container} *p; volatile VALUE ary;
+	ary = rb_ary_new();
+	for(p = list ; p ; p = p->next) {
+		rb_ary_push(ary, #{Rubber.explicit_cast('(('+ct+') p->data )', ct, 'VALUE')});
+	}
+	return ary;
+}
+EOADD
+			$custom_maps[rule] ||={}
+			$custom_maps[rule]['VALUE'] = function+"(%%)"
+		end
       else
         returntype = 'VALUE'
       end
@@ -443,7 +467,7 @@ def _scan(fp)
       if state.in_func
         func.text += txt
       else
-		 syntax_error "Invalid character #{txt}" 
+		 syntax_error "Invalid character #{txt}"
       end
     end
   end
