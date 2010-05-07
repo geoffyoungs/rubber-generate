@@ -18,9 +18,14 @@ def generate_c_source(scanner, io)
   io.puts "typedef int rubber_bool;"
   io.puts "#define bool rubber_bool"
   io.puts "\n/* Prototypes */"
-  io.puts '#include "rbglib.h"' if scanner.options.glib?
+if scanner.options.glib?
+  io.puts <<-EOGLIB
+#include "rbglib.h"
+
+EOGLIB
+
   
-if scanner.options.glib? and scanner.options.gtk?
+if scanner.options.gtk?
   io.write <<-EOI
 #include "rbgtk.h"
 
@@ -40,6 +45,7 @@ RUBY_GTK2_VAR VALUE mGdk;
 #define RBGTK_INITIALIZE(obj,gtkobj)\
  (rbgtk_initialize_gtkobject(obj, GTK_OBJECT(gtkobj)))
 EOI
+end
 end
 
 

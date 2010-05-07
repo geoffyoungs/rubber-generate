@@ -156,7 +156,7 @@ class C_Function
 	to_type = (!(to_type.nil? or to_type.empty?) && to_type || (arg && arg.ctype || guess(cast)))
         io.write(Rubber.explicit_cast(cast, from_type, to_type))
      elsif txt = sc.scan(CAST)
-	warn("<TYPE:VALUE> is deprecated - please use <{FROM_TYPE>TO_TYPE:VALUE}> instead.")
+		warn("<TYPE:VALUE> is deprecated - please use <{FROM_TYPE>TO_TYPE:VALUE}> instead.")
         name, cast = sc[1], sc[2]
         arg = @arghash[name]
         io.write(Rubber::explicit_cast(name, arg && arg.ctype || guess(name), cast))
@@ -190,8 +190,8 @@ class C_Function
               retval << (mini_scanner.get_byte)
             end
           end
-          unless Rubber::native_type?(returntype)
-            io << Rubber::explicit_cast(retval, returntype, 'VALUE')
+          unless Rubber.native_type?(returntype)
+            io << Rubber.explicit_cast(retval, returntype, 'VALUE')
           else
             io << retval
           end
