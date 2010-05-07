@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s| 
   s.name = "rubber-generate"
-  s.version = "0.0.6"
+  s.version = "0.0.7"
   s.author = "Geoff Youngs"
   s.email = "g@intersect-uk.co.uk"
   s.homepage = "http://github.com/geoffyoungs/rubber-generate"

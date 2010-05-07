@@ -1,6 +1,6 @@
 h1. Rubber Generate
 
-h2. v0.0.5
+h2. v0.0.7
  
 Template language for generating Ruby bindings for C libraries
 by Geoff Youngs <g@intersect-uk.co.uk>
@@ -17,6 +17,17 @@ it is planned to remove this dependency unless they genuinely require Ruby/GTK.
 
 Other features include custom named type-maps, pre/post code inclusion within
 functions and some rudimentary understanding of C code.
+
+h3. Changes
+
+ * 0.0.7 - 7th May 2010
+   - Add support for array constants (including autmatic type detection) - e.g array <ConstantName> = [ "Text", NULL, 3 ]
+   - Add syntax_error function to parser which reports slightly more helpful syntax error messages for a .cr file
+   - Add tracking of code location so that C compiler throws errors which refer to the original line in the .cr file
+   - Add support for GSList{type} or GList{type} conversion to arrays as return values for functions
+
+ * 0.0.6 - 6th May 2010
+   - Flags class allows wrapping a bit field with slightly more information.  Plus automatic conversion to/from ruby and support for integer values.
 
 h3. Dependencies
 
