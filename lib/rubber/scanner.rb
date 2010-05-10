@@ -372,7 +372,7 @@ def _scan(fp)
       @str.skip(/\s+/)
       if @str.scan(/([a-zA-Z_* ]+):/)
         returntype = @str[1]
-	  elsif @str.skip(/(GS?List){([^}]+)}:/)
+	  elsif @str.skip(/(GS?List)[{]([^}]+)[}]:/)
 		container = @str[1]
 		ct = @str[2]
 		cn = ct.gsub(/\s+/,'').gsub(/[*]/,'__p')
