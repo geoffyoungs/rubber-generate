@@ -74,7 +74,7 @@ def scan(fp)
       break if off > @str.pos
       ind += 1
     end
-    p @state, @str, ind
+    #p @state, @str, ind
     raise
 end
 def _scan(fp)
