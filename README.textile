@@ -1,6 +1,6 @@
 h1. Rubber Generate
 
-h2. v0.0.7
+h2. v0.0.8
  
 Template language for generating Ruby bindings for C libraries
 by Geoff Youngs <g@intersect-uk.co.uk>
@@ -19,6 +19,9 @@ Other features include custom named type-maps, pre/post code inclusion within
 functions and some rudimentary understanding of C code.
 
 h3. Changes
+
+ * 0.0.8 - 10th May 2010
+   - Add support for %min-version <MAJOR>.<MINOR>.<MICRO>
 
  * 0.0.7 - 7th May 2010
    - Add support for array constants (including autmatic type detection) - e.g array <ConstantName> = [ "Text", NULL, 3 ]
