@@ -20,15 +20,38 @@ require 'rubber/mkextconf'
 require 'rubber/scanner'
 require 'rubber/types'
 require 'rubber/autord'
+require 'optparse'
+require 'ostruct'
+
+Args = OpenStruct.new
+Args.build_dir = Config::CONFIG['sitearch']
+Args.configure = false
+Args.build = false
 
 
-args = ARGV.select { |i| i[0] != ?- }
-switches = ARGV.select { |i| i[0] == ?- }
+
+OptionParser.new { |opts|
+	opts.banner = "Usage: rubber-generate [options] file"
+	opts.on("--build-dir DIR", 'Directory for generating/building extension') do |dir|
+		Args.build_dir = dir
+	end
+	opts.on('--configure', 'Run generated extconf.rb') do 
+		Args.configure = true
+	end
+	opts.on('--build', 'Build extension') do
+		Args.build = true
+	end
+}.parse!(ARGV)
+
+
+args = ARGV#.select { |i| i[0] != ?- }
+#switches = ARGV.select { |i| i[0] == ?- }
 (args.size > 0 && args || Dir.glob('*.cr')).each { |file|
 
   file = File.expand_path(file)
-  File.mkpath(Config::CONFIG['sitearch'])
-  Dir.chdir(Config::CONFIG['sitearch']) do
+
+  File.mkpath(Args.build_dir)
+  Dir.chdir(Args.build_dir) do
 
 	  
 	  scanner = Rubber::CRScanner.new(file)
@@ -47,8 +70,8 @@ switches = ARGV.select { |i| i[0] == ?- }
 	  out.close
 	  extconf.close
 	  
-	  system('ruby','extconf.rb') if switches.include?('--configure')
-	  system('make') if switches.include?("--build")
+	  system('ruby','extconf.rb') if Args.configure
+	  system('make') if Args.build
   end
 }
 #out.close
