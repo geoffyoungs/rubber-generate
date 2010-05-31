@@ -1,6 +1,9 @@
+$: << 'lib'
+require 'rubber/scanner'
+
 spec = Gem::Specification.new do |s| 
   s.name = "rubber-generate"
-  s.version = "0.0.8"
+  s.version = Rubber::VERSION.map{|n|n.to_s}.join(".")
   s.author = "Geoff Youngs"
   s.email = "g@intersect-uk.co.uk"
   s.homepage = "http://github.com/geoffyoungs/rubber-generate"
