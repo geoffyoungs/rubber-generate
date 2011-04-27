@@ -1,6 +1,9 @@
 require 'rubber/struct'
 module Rubber
-VERSION = [0,0,10]
+VERSION = [0,0,11]
+def VERSION.to_s
+	self.map{|i|i.to_s}.join('.')
+end
 class ScanState
   define_members(:in_code, :in_class, :in_func, :braces)
 end
@@ -116,11 +119,11 @@ def _scan(fp)
     elsif @str.skip(/%name */) # Extension name
       @ext = @str.scan(/[a-zA-Z0-9]+/)
 	elsif @str.skip(/%min-version */)
-	  @version = @str.scan(/([0-9]+)\.([0-9]+)\.([0-9])/)
+	  @version = @str.scan(/([0-9]+)\.([0-9]+)\.([0-9]+)/)
 	  version = [1,2,3].map{|i|@str[i].to_i}
 	  Rubber::VERSION.each_with_index do |ver,idx|
 		  if ver < version[idx]
-			  misc_error "This version of rubber-generate (#{Rubber::VERSION}) is too old: #{@file} requires version #{version.map{|i|i.to_s}.join('.')}"
+			  misc_error "This version of rubber-generate (#{Rubber::VERSION}) is too old: #{@file} requires version #{version.map{|i|i.to_s}.join('.')}", false
 		  end
 	  end
     elsif @str.skip(/%pkg-config\s*([-a-z.0-9+]+)/) # pkg-config library
@@ -495,12 +498,14 @@ end
 	end
 	exit 1
   end
-  def misc_error(message)
+  def misc_error(message, show_location=true)
 	STDERR.puts "Error: #{message} at line #{current_line}\n"
-	if @str.rest.size > 255
-		STDERR.puts @str.rest[0..255]+"..."
-	else
-		STDERR.puts @str.rest
+	if show_location
+		if @str.rest.size > 255
+			STDERR.puts @str.rest[0..255]+"..."
+		else
+			STDERR.puts @str.rest
+		end
 	end
 	exit 1
   end
