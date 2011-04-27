@@ -20,6 +20,9 @@ functions and some rudimentary understanding of C code.
 
 h3. Changes
 
+ * 0.0.10 - 27th Apr 2011
+   - Add --install flag
+
  * 0.0.9 - 31st May 2010
    - Add support for --build-dir <DIR> switch to specify output directory
 

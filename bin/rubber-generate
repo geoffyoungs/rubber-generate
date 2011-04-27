@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 if FileTest.symlink?(__FILE__)
-  file = File::readlink(__FILE__)
+  file = File.readlink(__FILE__)
 else
   file = __FILE__
 end
@@ -9,12 +9,10 @@ end
 require 'rbconfig'
 require 'ftools'
 
-dir = File::dirname(file)
+dir = File.dirname(File.expand_path(file))
 $:.unshift(dir)
-#puts dir
+
 require 'strscan'
-#require 'rubygems'
-#require_gem 'rubber'
 require 'rubber/codegen'
 require 'rubber/mkextconf'
 require 'rubber/scanner'
@@ -23,55 +21,67 @@ require 'rubber/autord'
 require 'optparse'
 require 'ostruct'
 
-Args = OpenStruct.new
+Args           = OpenStruct.new
 Args.build_dir = Config::CONFIG['sitearch']
 Args.configure = false
-Args.build = false
-
+Args.build     = false
+Args.install   = false
 
 
 OptionParser.new { |opts|
-	opts.banner = "Usage: rubber-generate [options] file"
-	opts.on("--build-dir DIR", 'Directory for generating/building extension') do |dir|
-		Args.build_dir = dir
-	end
-	opts.on('--configure', 'Run generated extconf.rb') do 
-		Args.configure = true
-	end
-	opts.on('--build', 'Build extension') do
-		Args.build = true
-	end
+  opts.banner = "Usage: rubber-generate [options] file"
+  opts.on("--build-dir DIR", 'Directory for generating/building extension') do |dir|
+    Args.build_dir = dir
+  end
+  opts.on('--configure', 'Run generated extconf.rb') do
+    Args.configure = true
+  end
+  opts.on('--build', 'Build extension') do
+    Args.build = true
+  end
+  opts.on('--install', 'Install') do
+    Args.install = true
+  end
 }.parse!(ARGV)
 
 
-args = ARGV#.select { |i| i[0] != ?- }
-#switches = ARGV.select { |i| i[0] == ?- }
-(args.size > 0 && args || Dir.glob('*.cr')).each { |file|
+(ARGV.size > 0 && ARGV || Dir.glob('*.cr')).each do |file|
 
   file = File.expand_path(file)
+  FileUtils.mkdir_p(Args.build_dir)
 
-  File.mkpath(Args.build_dir)
   Dir.chdir(Args.build_dir) do
+ 
+    scanner = Rubber::CRScanner.new(file)
+    scanner.scan(nil)
+   
+    File.open(scanner.ext + ".c", 'w') do |out|
+      File.open(scanner.ext + ".rd", 'w') do |doc|
+        File.open('extconf.rb', 'w') do |extconf|
+          Rubber.generate_extconf(scanner, extconf)
+          Rubber.generate_c_source(scanner, out)
+          Rubber.generate_rd(scanner, doc)
+        end
+      end
+    end
+    
+    system('ruby','extconf.rb') if Args.configure
 
-	  
-	  scanner = Rubber::CRScanner.new(file)
-	  scanner.scan(nil)
-	 
-	  out = File.open(scanner.ext + ".c", 'w')
-	  doc = File.open(scanner.ext + ".rd", 'w')
-	  
-	  extconf = File.open('extconf.rb', 'w')
-	  Rubber.generate_extconf(scanner, extconf)
-	  Rubber.generate_c_source(scanner, out)
-	  Rubber.generate_rd(scanner, doc)
-	  
-	  
-	  doc.close
-	  out.close
-	  extconf.close
-	  
-	  system('ruby','extconf.rb') if Args.configure
-	  system('make') if Args.build
+    system('make') if Args.build
+
+    if Args.install
+      if Process.uid.zero?
+        system('make', 'install')
+      else
+        if system('sudo', '-k', '-n', 'make')
+          # System is setup to allow make to be run without password
+          system('sudo', 'make', 'install')
+        else
+          # Password required
+          system('sudo', '-k', '-p', 'Enter password to install: ', 'make', 'install')
+        end
+      end
+    end
+
   end
-}
-#out.close
+end

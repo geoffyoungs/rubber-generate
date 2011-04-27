@@ -1,6 +1,6 @@
 require 'rubber/struct'
 module Rubber
-VERSION = [0,0,9]
+VERSION = [0,0,10]
 class ScanState
   define_members(:in_code, :in_class, :in_func, :braces)
 end
