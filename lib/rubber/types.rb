@@ -1,15 +1,16 @@
 
-$custom_maps = {}
+$custom_maps  = {}
 $custom_frees = {}
-$equivalents = {}
+$equivalents  = {}
 module Rubber
 # Map most GLib types to normal C style ones
-CMAP = { 
+CMAP = {
   'ruby'=>'VALUE',
-  'gboolean'=>'bool', 
-  'gint'=>'int', 
-  'glong'=>'long', 
-  'guint'=>'uint', 
+  'gboolean'=>'bool',
+  'gint'=>'int',
+  'glong'=>'long',
+  'guint'=>'uint',
+  'guint64'=>'uint64',
   'gchar'=>'char',
   'gfloat'=>'double', # Ruby only uses doubles?
   'float'=>'double', # Ruby only uses doubles?
@@ -152,6 +153,8 @@ def self.explicit_cast(name, ctype, rule)
           "NUM2INT(#{name})"
         when 'uint'
           "NUM2UINT(#{name})"
+		when 'uint64'
+		  "rb_num2ull(#{name})"
         when 'long'
           "NUM2LONG(#{name})"
         when 'double'
@@ -179,6 +182,13 @@ def self.explicit_cast(name, ctype, rule)
         else
         raise "Unable to convert #{ctype} to #{rule}"
       end
+    when 'uint64'
+      case rule
+        when 'VALUE', 'ruby'
+          " rb_ull2inum(#{name})"
+        else
+          raise "Unable to convert #{ctype} to #{rule}"
+	    end
     when 'char*', 'string'
       case rule
         when 'VALUE', 'ruby'

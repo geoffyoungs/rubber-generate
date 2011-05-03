@@ -13,7 +13,7 @@ spec = Gem::Specification.new do |s|
   s.require_path = "lib"
   s.bindir = 'bin'
   s.executables = ['rubber-generate']
-  s.test_files = ['example/vte.cr']
+  s.test_files = ['example/vte.cr'] + Dir['test/*_test.rb']
   s.extra_rdoc_files = ["README.textile"]
   s.description = <<-EOF
     rubber-c-binder allows a rubyish means of generating bindings for C libraries,
