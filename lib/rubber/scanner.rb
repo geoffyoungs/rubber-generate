@@ -1,6 +1,6 @@
 require 'rubber/struct'
 module Rubber
-VERSION = [0,0,11]
+VERSION = [0,0,12]
 def VERSION.to_s
 	self.map{|i|i.to_s}.join('.')
 end
