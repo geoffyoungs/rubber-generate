@@ -29,6 +29,9 @@ class C_GCRefPool
     }
     "
   end
+  def parent
+	  nil
+  end
   def declare(io)
     io.puts "static VALUE #{cname} = Qnil;"
     io.puts "static void _#{cname}_add(VALUE val);"
