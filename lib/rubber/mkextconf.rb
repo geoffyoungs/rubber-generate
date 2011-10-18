@@ -1,7 +1,7 @@
 
 module Rubber
-def generate_extconf(scanner, io)i
-	io << EOMK
+def generate_extconf(scanner, io)
+	io << <<-EOMK
 require 'mkmf'
 
 begin
@@ -12,15 +12,14 @@ rescue LoadError
   require 'mkmf-gnome2'
   %w[rbglib.h rbgtk.h rbpango.h rbatk.h].each do |header|
   	Gem.find_files(header).each do |f|
-		$CFLAGS += " '-I#{File.dirname(f)}'"
+		$CFLAGS += " '-I\#{File.dirname(f)}'"
 	end
   end
 end
 
-
 have_func("rb_errinfo")
-
 EOMK
+
     #io.puts "require 'mkmf'"
     #io.puts "require 'mkmf-gnome2'" if scanner.pkgs
     #io.puts "$defs ||= []"
