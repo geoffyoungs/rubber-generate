@@ -1,6 +1,6 @@
 require 'rubber/struct'
 module Rubber
-VERSION = [0,0,13]
+VERSION = [0,0,14]
 def VERSION.to_s
 	self.map{|i|i.to_s}.join('.')
 end
@@ -269,14 +269,17 @@ def _scan(fp)
       @str.skip(/\s+/)
       g_type = @str.scan(/[A-Z][_0-9A-Z]*/)
       @str.skip(/\s+/)
-      prefix = @str.scan(/[A-Z][_0-9A-Z]*/)
+      prefix = @str.scan(/(prefix=)?[A-Z][_0-9A-Z]*/i).to_s.sub(/^prefix=/i,'')
+      @str.skip(/\s*/)
+      define_on_self = @str.scan(/define_on_self/)
       @str.skip(/\s*;/)
       if what == "gflags"
-        stack.last.classes.push(C_GFlags.new(name, g_type, prefix, stack.last))
+        obj = C_GFlags.new(name, g_type, prefix, stack.last)
       else
-        stack.last.classes.push(C_GEnum.new(name, g_type, prefix, stack.last))
-      end
-      
+        obj = C_GEnum.new(name, g_type, prefix, stack.last)
+		obj.define_on_self = !! define_on_self;
+	  end
+	  stack.last.classes.push(obj)
     elsif state.in_func == false and @str.skip(/(gobject|ginterface|gboxed)(?= )/x) # Class defn
       type=@str[1]
       @str.skip(/\s+/)
@@ -373,7 +376,7 @@ def _scan(fp)
       @class.post_func= @str[1] if @class.respond_to?(:post_func)
     elsif @str.skip(/def(?=\s+)/x) # Function defn
       @str.skip(/\s+/)
-      if @str.scan(/([a-zA-Z_* ]+):/)
+      if @str.scan(/([a-zA-Z_* 0-9]+):/)
         returntype = @str[1]
 	  elsif @str.skip(/(GS?List)[{]([^}]+)[}]:/)
 		container = @str[1]
