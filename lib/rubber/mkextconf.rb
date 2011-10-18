@@ -1,9 +1,28 @@
 
 module Rubber
-def generate_extconf(scanner, io)
-  if true
-    io.puts "require 'mkmf'"
-    io.puts "require 'mkmf-gnome2'" if scanner.pkgs
+def generate_extconf(scanner, io)i
+	io << EOMK
+require 'mkmf'
+
+begin
+  require 'mkmf-gnome2'
+rescue LoadError
+  require 'rubygems'
+  gem 'glib2'
+  require 'mkmf-gnome2'
+  %w[rbglib.h rbgtk.h rbpango.h rbatk.h].each do |header|
+  	Gem.find_files(header).each do |f|
+		$CFLAGS += " '-I#{File.dirname(f)}'"
+	end
+  end
+end
+
+
+have_func("rb_errinfo")
+
+EOMK
+    #io.puts "require 'mkmf'"
+    #io.puts "require 'mkmf-gnome2'" if scanner.pkgs
     #io.puts "$defs ||= []"
 
     if scanner.inc_dirs
@@ -89,7 +108,6 @@ rescue Interrupt
 end
 
     EOB
-  end
 end
 module_function :generate_extconf
 end

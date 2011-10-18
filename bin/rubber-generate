@@ -6,6 +6,7 @@ else
   file = __FILE__
 end
 
+require 'fileutils'
 require 'rbconfig'
 require 'ftools'
 
