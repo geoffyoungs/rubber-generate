@@ -57,6 +57,7 @@ OptionParser.new { |opts|
     scanner.scan(nil)
    
     File.open(scanner.ext + ".c", 'w') do |out|
+	  out.puts '#pragma GCC diagnostic ignored "-Wunused-but-set-variable"'
       File.open(scanner.ext + ".rd", 'w') do |doc|
         File.open('extconf.rb', 'w') do |extconf|
           Rubber.generate_extconf(scanner, extconf)
