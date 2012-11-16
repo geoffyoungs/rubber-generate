@@ -1,12 +1,16 @@
 
 module Rubber
 def generate_extconf(scanner, io)
-	io << <<-EOMK
+	io.write <<-EOMK
 require 'mkmf'
-
+use_gems = false
 begin
   require 'mkmf-gnome2'
 rescue LoadError
+  use_gems = true
+end
+
+if use_gems or Object.const_defined?('Gem')
   require 'rubygems'
   gem 'glib2'
   require 'mkmf-gnome2'
@@ -16,13 +20,31 @@ rescue LoadError
 	end
   end
 end
-
-have_func("rb_errinfo")
 EOMK
 
-    #io.puts "require 'mkmf'"
-    #io.puts "require 'mkmf-gnome2'" if scanner.pkgs
-    #io.puts "$defs ||= []"
+io.write <<-EOMK
+# Look for headers in {gem_root}/ext/{package}
+if use_gems
+  %w[
+EOMK
+  io << " glib2" if scanner.options.glib
+  io << " gdk_pixbuf2 atk gtk2" if scanner.options.gtk
+  io.write <<-EOX
+    ].each do |package|
+      require package
+      $CFLAGS += " -I"+Gem.loaded_specs[package].full_gem_path+"/ext/"+package
+  end
+end
+EOX
+
+io.write <<-EOY
+if RbConfig::CONFIG.has_key?('rubyhdrdir')
+$CFLAGS += " -I" + RbConfig::CONFIG['rubyhdrdir']+'/ruby'
+end
+
+$CFLAGS += " -I."
+have_func("rb_errinfo")
+EOY
 
     if scanner.inc_dirs
       io.puts "$CFLAGS += "+scanner.inc_dirs.collect { |i| " '-I#{i}'"}.join().inspect
