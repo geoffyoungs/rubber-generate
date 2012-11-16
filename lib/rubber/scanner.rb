@@ -1,9 +1,6 @@
 require 'rubber/struct'
+require 'rubber/version'
 module Rubber
-VERSION = [0,0,16]
-def VERSION.to_s
-	self.map{|i|i.to_s}.join('.')
-end
 class ScanState
   define_members(:in_code, :in_class, :in_func, :braces)
 end

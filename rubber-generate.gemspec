@@ -1,5 +1,5 @@
 $: << 'lib'
-require 'rubber/scanner'
+require 'rubber/version'
 
 spec = Gem::Specification.new do |s| 
   s.name = "rubber-generate"
