@@ -137,7 +137,7 @@ def _scan(fp)
       @incs << @str[1].strip
     elsif @str.skip(/%option +([a-z]+)=(yes|no)\n/) # Option
       case @str[1]
-      when 'glib','gtk','gnu'
+      when 'glib', 'gtk', 'gnu'
       	@options[@str[1]] = (@str[2] == 'yes')
       else
         syntax_error "Unknown option #{@str[1]}"
@@ -408,7 +408,8 @@ EOADD
       unless name
         name = @str.scan(/[-\[\]<>~=+|&]{1,3}/)
       end
-       name = prename.to_s + (oname=name)
+      oname = name
+      name = prename.to_s + oname
       #p [prename, oname, name]
       @str.skip(/\s*/)
       args = scan_args().collect { |i| C_Param.new(i) }

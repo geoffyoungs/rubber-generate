@@ -8,7 +8,6 @@ end
 
 require 'fileutils'
 require 'rbconfig'
-require 'ftools'
 
 dir = File.dirname(File.expand_path(file))
 $:.unshift(dir)
@@ -23,7 +22,11 @@ require 'optparse'
 require 'ostruct'
 
 Args           = OpenStruct.new
-Args.build_dir = Config::CONFIG['sitearch']
+if Object.const_defined?('RbConfig')
+  Args.build_dir = RbConfig::CONFIG['sitearch']
+else
+  Args.build_dir = Config::CONFIG['sitearch']
+end
 Args.configure = false
 Args.build     = false
 Args.install   = false

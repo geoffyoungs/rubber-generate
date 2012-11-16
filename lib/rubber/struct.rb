@@ -8,24 +8,24 @@ def define_member(name, value=nil)
     end
 end
 def define_members(*ids)
-    members = []
-    ids.each do |id|
-	if id.kind_of?(Hash)
+  members = []
+  ids.each do |id|
+    if id.kind_of?(Hash)
 	    STDERR.puts("WARNING: Hash passed to define_members has size > 1 in #{caller.join("\n")}\n`#{to_s}.new(...)' will not work as expected (non-predictable member order)") if id.size > 1
 	    id.each do |name,value|
-		define_member(name,value)
-                raise "Duplicate definition of member `#{name}'" if members.include?(name.to_s)
-		members.push(name.to_s)
-	    end
-	elsif id.kind_of?(Symbol)
-	    define_member(id)
-            raise "Duplicate definition of member `#{id}'" if members.include?(id.to_s)
-	    members.push(id.to_s)
-	else
-	    raise "Neither a Hash nor a Symbol - `#{id}'"
-	end
+        define_member(name,value)
+        raise "Duplicate definition of member `#{name}'" if members.include?(name.to_s)
+        members.push(name.to_s)
+      end
+    elsif id.kind_of?(Symbol)
+      define_member(id)
+      raise "Duplicate definition of member `#{id}'" if members.include?(id.to_s)
+      members.push(id.to_s)
+    else
+      raise "Neither a Hash nor a Symbol - `#{id}'"
     end
-    module_eval <<-EOS
+  end
+  code = <<-EOS
       def initialize(*ids); 
         members.each_index { |i| __send__((members[i]+'=').intern, i < ids.size ? ids[i] : __send__(members[i].intern)) }; 
           if respond_to?(:init)
@@ -42,11 +42,12 @@ def define_members(*ids)
       def members(); #{members.inspect}; end
       def kind_of?(klass); return true if klass == Struct; super(klass); end
       def to_a(); [#{members.join(', ')}]; end
-      def [](id); id=id.intern if id.kind_of?(String); case id; #{i=-1;members.collect{|name| "when :#{name},#{i+=1}; @#{name};"}} else raise 'Unknown member - '+id.to_s; end; end
-      def []=(id,value); id=id.intern if id.kind_of?(String); case id; #{i=-1;members.collect{|name| "when :#{name},#{i+=1}; @#{name}=value;"}} else raise 'Unknown member - '+id.to_s; end; end
+      def [](id); id=id.intern if id.kind_of?(String); case id; #{i=-1;members.collect{|name| "when :#{name},#{i+=1}; @#{name};"}.join("\n")} else raise 'Unknown member - '+id.to_s; end; end
+      def []=(id,value); id=id.intern if id.kind_of?(String); case id; #{i=-1;members.collect{|name| "when :#{name},#{i+=1}; @#{name}=value;"}.join("\n")} else raise 'Unknown member - '+id.to_s; end; end
       def length; #{members.size}; end
       alias_method(:size, :length)
       alias_method(:values, :to_a)
-    EOS
-  end
+  EOS
+  module_eval code
+end
 end

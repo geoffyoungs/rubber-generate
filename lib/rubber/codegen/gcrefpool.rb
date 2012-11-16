@@ -24,7 +24,7 @@ class C_GCRefPool
       }
       rb_ary_delete(#{cname}, val);
       // If nothing is referenced, don't keep an empty array in the pool...
-      if (RARRAY(#{cname})->len == 0)
+      if (RARRAY_LEN(#{cname}) == 0)
         #{cname} = Qnil;
     }
     "
