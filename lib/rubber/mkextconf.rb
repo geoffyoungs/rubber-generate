@@ -30,16 +30,26 @@ EOMK
   io << " glib2" if scanner.options.glib
   io << " gdk_pixbuf2 atk gtk2" if scanner.options.gtk
   io.write <<-EOX
-    ].each do |package|
-      require package
-      $CFLAGS += " -I"+Gem.loaded_specs[package].full_gem_path+"/ext/"+package
+].each do |package|
+    require package
+    if Gem.loaded_specs[package]
+      $CFLAGS += " -I" + Gem.loaded_specs[package].full_gem_path + "/ext/" + package
+    else
+      if fn = $".find { |n| n.sub(/[.](so|rb)$/,'') == package }
+        dr = $:.find { |d| File.exist?(File.join(d, fn)) }
+        pt = File.join(dr,fn) if dr && fn
+      else
+        pt = "??"
+      end
+      STDERR.puts "require '" + package + "' loaded '"+pt+"' instead of the gem - trying to continue, but build may fail"
+    end
   end
 end
 EOX
 
 io.write <<-EOY
 if RbConfig::CONFIG.has_key?('rubyhdrdir')
-$CFLAGS += " -I" + RbConfig::CONFIG['rubyhdrdir']+'/ruby'
+  $CFLAGS += " -I" + RbConfig::CONFIG['rubyhdrdir']+'/ruby'
 end
 
 $CFLAGS += " -I."
