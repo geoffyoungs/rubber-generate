@@ -106,7 +106,11 @@ static VALUE rubber_flags_cmp(VALUE value, VALUE other)
 	VALUE a,b;
 	a = rb_funcall(value, rb_intern(\"to_i\"), 0);
 	b = rb_funcall(other, rb_intern(\"to_i\"), 0);
+#ifdef RB_NUM_COERCE_FUNCS_NEED_OPID
+	return rb_num_coerce_cmp(a, b, rb_intern(\"==\"));
+#else
 	return rb_num_coerce_cmp(a, b);
+#endif
 }
 
 static VALUE rubber_flags_to_i(VALUE value)

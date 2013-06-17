@@ -20,6 +20,7 @@ functions and some rudimentary understanding of C code.
 
 h3. Changes
 
+
  * 0.0.11 - 27th Apr 2011
    - Fix parsing of %min-version numbers
 
@@ -43,7 +44,7 @@ h3. Changes
 
 h3. Dependencies
 
- * Ruby 1.8.6
+ * Ruby 1.8 / Ruby 1.9 / Ruby 2.0
 
 h3. Example
 
