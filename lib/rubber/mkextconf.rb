@@ -57,7 +57,12 @@ have_func("rb_errinfo")
 EOY
 
     if scanner.inc_dirs
-      io.puts "$CFLAGS += "+scanner.inc_dirs.collect { |i| " '-I#{i}'"}.join().inspect
+      io.puts "$CFLAGS += "+scanner.inc_dirs.reject { |i| i =~ /:/ }.collect { |i| " '-I#{i}'" }.join().inspect
+      scanner.inc_dirs.select { |i| i =~ /gem:/ }.each do |gem_info|
+        name,extra = gem_info.split(/:/)[1].split(%r'/', 2)
+        extra = "/#{extra}" unless extra.nil? or extra.empty?
+        io.puts %Q<gem '#{name}'; $CFLAGS += "  '-I" + Gem.loaded_specs['#{name}'].full_gem_path + "#{extra}'">
+      end
     end
     if scanner.lib_dirs
       io.puts "$LDFLAGS += "+scanner.lib_dirs.collect { |i| " '-L#{i}'"}.join().inspect
@@ -68,7 +73,17 @@ EOY
     scanner.pkgs.each { |pkg| io.puts "PKGConfig.have_package(#{pkg.inspect}) or exit(-1)" } if scanner.pkgs
     
     if scanner.incs
-      scanner.incs.each { |i| io.puts "have_header(#{i.inspect}) or exit(-1)"}
+      scanner.incs.each { |i|
+        io.puts %Q<
+unless have_header(#{i.inspect})
+  paths = Gem.find_files(#{i.inspect})
+  paths.each do |path|
+    $CFLAGS += " '-I\#{File.dirname(path)}'"
+  end
+  have_header(#{i.inspect}) or exit -1
+end
+>
+      }
     end
     if scanner.libs
       scanner.libs.each { |i| io.puts "have_library(#{i.inspect}) or exit(-1)\n$LIBS += \" -l#{i}\""}

@@ -1,6 +1,6 @@
 h1. Rubber Generate
 
-h2. v0.0.11
+h2. v0.0.20
  
 Template language for generating Ruby bindings for C libraries
 by Geoff Youngs <g@intersect-uk.co.uk>
@@ -19,7 +19,35 @@ Other features include custom named type-maps, pre/post code inclusion within
 functions and some rudimentary understanding of C code.
 
 h3. Changes
+ * 0.0.20 - 31st Jul 2013
+   - Auto-scan loaded gems for missing headers
+   - Add support for %include_dir gem:foo or gem:foo/path/in/gem
 
+ * 0.0.19 - 17th June 2013
+   - Ruby 1.9 changes arguments for rb_num_coerce_cmp() - fixed.
+
+ * 0.0.18 - 16th Nov 2012
+   - Fixes for finding ruby-gnome2 header in gems
+   - Improved error reporting
+
+ * 0.0.17 - 16th Nov 2012
+   - Ruby 1.9 fixes
+
+ * 0.0.16 - 20th Oct 2011
+   - Add GCC pragma to reduce warnings on unused variables
+
+ * 0.0.15 - 18th Oct 2011
+   - Add support for scanning gem directories for ruby-gnome2 headers
+   - Fix missing fileutils dependency
+
+ * 0.0.14 - 18th Oct 2011
+   - Add define_on_self to genum (allow constants to be defined within submodule rather than on parent module/class)
+
+ * 0.0.13 - 5th May 2011
+   - Bug fix for gcpool
+
+ * 0.0.12 - 3rd May 2011
+   - Add support for uint64 conversion
 
  * 0.0.11 - 27th Apr 2011
    - Fix parsing of %min-version numbers
