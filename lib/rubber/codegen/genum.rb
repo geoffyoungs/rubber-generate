@@ -8,6 +8,13 @@ class C_GEnum < C_Enum
   def init()
     ($custom_maps[name] ||= {})["VALUE"] = "GENUM2RVAL(%%, #{g_type})"
     ($custom_maps["VALUE"] ||= {})[name] = "RVAL2GENUM(%%, #{g_type})"
+
+    gt = g_type.dup
+    gt.sub!("#{$1}_TYPE","#{$1}") if gt =~ /\A([A-Z]+)_TYPE/ # Strip TYPE bit
+    tc = gt.downcase.capitalize.gsub(/_[a-z]/){ |i| i[1..1].upcase}
+
+    ($custom_maps["VALUE"] ||= {})[tc] = "RVAL2GFLAGS(%%, #{g_type})"
+    ($custom_maps[tc] ||= {})["VALUE"] = "GFLAGS2RVAL(%%, #{g_type})"
   end
   def code(io)
   end
