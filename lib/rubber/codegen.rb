@@ -5,11 +5,18 @@ def generate_c_source(scanner, io)
   if scanner.options.gnu
   	io.puts "#define _GNU_SOURCE 1"
   end
-  io.puts "/* Includes */"
-  io.puts "#include <ruby.h>"
-  io.puts "#include <stdlib.h>"
-  io.puts "#include <stdio.h>"
-  io.puts "#include <string.h>"
+  io.puts <<-EOX
+  /* Includes */
+  #include <ruby.h>
+  #include <stdlib.h>
+  #include <stdio.h>
+  #include <string.h>
+  #if defined GCC
+    #define OPTIONAL_ATTR __attribute__((unused))
+  #else
+    #define OPTIONAL_ATTR
+  #endif
+EOX
   if scanner.incs
     scanner.incs.each { |i| io.puts "#include #{i.inspect}"}
   end

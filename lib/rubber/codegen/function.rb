@@ -57,8 +57,8 @@ class C_Function
     if @multi
       io.write "int __p_argc, VALUE *__p_argv, VALUE self"
     else
-      io.write "VALUE self"
-      io.write(args.reject {|i| i.block }.collect { |i| ', VALUE ' + i.cname }.join(''))
+      io.write "VALUE self OPTIONAL_ATTR "
+      io.write(args.reject {|i| i.block }.collect { |i| ', VALUE ' + i.cname + " OPTIONAL_ATTR" }.join(''))
       #io.write ", " if args.size > 1 or (args.size > 0 and not @block)
     end
     io.write ")"
@@ -131,7 +131,7 @@ class C_Function
         if arg.auto_convert?
           io.puts("  __orig_#{arg.name} = #{arg.name} = #{Rubber::explicit_cast(arg.cname, 'VALUE', arg.ctype)};")
         elsif arg.block
-          io.puts("  VALUE #{arg.name} = #{arg.init_value()};")
+          io.puts("  VALUE #{arg.name} OPTIONAL_ATTR = #{arg.init_value()};")
         else
            arg.check_type(io) if arg.rtype
         end
@@ -218,7 +218,7 @@ class C_Function
     io = oio
     
     
-    io.puts "  VALUE __p_retval = #{default()};" if returned
+    io.puts "  VALUE __p_retval OPTIONAL_ATTR = #{default()};" if returned
     io.puts setupvars
     io.puts "\n  do {" if @vars and not @vars.empty?
     io.puts code
