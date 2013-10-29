@@ -38,16 +38,16 @@ class C_Class < C_Module
       	io.puts "  c#{name} = #{cname};"
     else
 	    if parent and parent.cname
-	      io.puts "  #{cname} = rb_define_class_under(#{parent.cname}, #{name.inspect}, #{Rubber::find_class(superclass) || 'rb_cObject'});"
+	      io.puts "  #{cname} = rb_define_class_under(#{parent.cname}, #{name.inspect}, #{Rubber.find_class(superclass) || 'rb_cObject'});"
 	    else
-	      io.puts "  #{cname} = rb_define_class(#{name.inspect}, #{Rubber::find_class(superclass) || 'rb_cObject'});"
+	      io.puts "  #{cname} = rb_define_class(#{name.inspect}, #{Rubber.find_class(superclass) || 'rb_cObject'});"
 	    end
     end
     register_children(io)
   end
   include RegisterChildren
   def default_cname
-    "c"+name
+    "c#{name}"
   end
   def check_wrap_ok(io, fn, where)
     case where

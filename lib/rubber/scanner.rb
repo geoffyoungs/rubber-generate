@@ -18,14 +18,24 @@ module Rubber
   end
 
   class TokenStringScanner < StringScanner
+    def skip(*args)
+      x = super
+      #p [x, *args] if x
+      x
+    end
+    def scan(*args)
+      x = super
+      #p [x, *args] if x
+      x
+    end
     def scan_number
-      scan(/(0x[0-9]+|[0-9]+[.][0-9]+(e[0-9]+)?|[0-9]+)/)
+      scan(/(0x[0-9A-Fa-f]+|[0-9]+[.][0-9]+(e[0-9]+)?|[0-9]+)/)
     end
     def scan_lit_string
       scan(/(".*?[^\\]")/)
     end
     def scan_float
-      skip(/(\d[.]\d+)/)
+      scan(/(\d[.]\d+)/)
     end
     def scan_lit_integer
       scan(/([0-9]+)/)
@@ -40,16 +50,16 @@ module Rubber
       scan(/([A-Za-z0-9_]+)/)
     end
     def skip_ws
-      skip(/\s*/)
+      skip(/\s+/)
     end
     def scan_nil
-      skip(/NULL|nil/i)
+      scan(/NULL|nil/i)
     end
     def scan_lit_bool
       scan(/TRUE|FALSE/i)
     end
     def scan_pc_block
-      raw = @str.scan_until(/%\}/)
+      raw = scan_until(/%\}/)
       raw[-2..-1] = ""
       raw
     end
@@ -238,12 +248,12 @@ module Rubber
           puts "module "+ @class.fullname + "-#{@class.name}"
           state.in_class += 1
         elsif state.in_func == false and @str.skip(/class(?= )/x) # Class defn
-          @str.skip(/\s+/)
+          @str.skip_ws
           name = @str.scan_constant
           superclass = nil
           @str.skip(/\s*/)
           if @str.skip(/</)
-            @str.skip(/\s*/)
+            @str.skip_ws
             superclass = @str.scan_constant
           end
           @classes[name] = C_Class.new(name, superclass, [], [], [])
@@ -254,7 +264,7 @@ module Rubber
           state.in_class += 1
 
         elsif state.in_func == false and @str.skip(/struct(?= )/x) # Ruby Struct
-          @str.skip(/\s+/)
+          @str.skip_ws
           name = @str.scan_constant
           @str.skip_ws
           if @str.skip(/\(/)
@@ -311,7 +321,7 @@ module Rubber
         elsif state.in_func == false and @str.skip(/(gobject|ginterface|gboxed)(?= )/x) # Class defn
           type=@str[1]
           @str.skip_ws
-          name = @str.scan(/[A-Z][a-z_0-9A-Z]*/)
+          name = @str.scan_constant
           superclass = nil
           @str.skip_ws
           if @str.skip(/\</)
@@ -456,7 +466,7 @@ inline VALUE #{function}(#{container} *list) {
 
         elsif state.in_func == false and @str.skip(/(string|integer|float|double|int)(?= )/x) # C String as module wrapper
           type= @str[1]
-          @str.skip(/\s+/)
+          @str.skip_ws
           name = @str.scan_constant
           @str.skip(/\s*=\s*/)
           if @str.skip(/"/) #"
